@@ -88,6 +88,15 @@ export default function CustomerQueue() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center p-4">
       <Toaster position="top-center" />
+
+      {/* Staff login — top left corner */}
+      <Link
+        to="/login"
+        className="absolute top-4 left-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white text-sm font-semibold px-4 py-2 rounded-lg backdrop-blur-sm transition flex items-center gap-2"
+      >
+        🔐 Staff Login
+      </Link>
+
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-blue-600">IQMS</h1>
