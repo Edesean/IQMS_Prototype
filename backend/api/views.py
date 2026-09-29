@@ -11,7 +11,8 @@ from django.conf import settings
 from django.db.models import Avg
 from django.utils import timezone
 from datetime import timedelta
-
+import os
+import resend
 
 from .models import User, Branch, Customer, ServiceCategory, QueueTicket, Notification, AuditLog
 from .serializers import (
@@ -24,18 +25,25 @@ from .push_utils import send_push_to_customer
 
 # ---------- Email helper ----------
 def send_email(to_email, subject, message):
-    """Send an email notification. Fails silently so queue operations are never blocked."""
+    """Send via Resend HTTP API (works on Render free tier)."""
     if not to_email:
         print("[EMAIL] Skipped - no email address")
         return
+
+    api_key = os.getenv('RESEND_API_KEY', '')
+    if not api_key:
+        print("[EMAIL ERROR] RESEND_API_KEY not set")
+        return
+
+    resend.api_key = api_key
+
     try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[to_email],
-            fail_silently=False,
-        )
+        resend.Emails.send({
+            "from": "IQMS <onboarding@resend.dev>",
+            "to": [to_email],
+            "subject": subject,
+            "text": message,
+        })
         print(f"[EMAIL SENT] to {to_email} | {subject}")
     except Exception as e:
         print(f"[EMAIL ERROR] {to_email} | {e}")
