@@ -599,6 +599,8 @@ class QueueStatusView(APIView):
         })
 
 
+
+
 class AnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -627,6 +629,23 @@ class AnalyticsView(APIView):
         avg_wait = completed_tickets.aggregate(Avg('actual_wait_time'))['actual_wait_time__avg'] or 0
         avg_service = completed_tickets.aggregate(Avg('service_duration'))['service_duration__avg'] or 0
 
+        # Chart 1: average wait time (minutes) for each hour from 8 AM to 4 PM
+        hours = list(range(8, 17))
+        wait_by_hour = []
+        for h in hours:
+            hour_tickets = completed_tickets.filter(joined_at__hour=h)
+            avg = hour_tickets.aggregate(Avg('actual_wait_time'))['actual_wait_time__avg'] or 0
+            wait_by_hour.append(round(avg / 60, 1))
+
+        # Chart 2: average service time (minutes) for each day of the week
+        # Django week_day: Sunday=1, Monday=2 ... Saturday=7
+        django_day_map = [2, 3, 4, 5, 6, 7, 1]  # Mon ... Sun
+        service_by_day = []
+        for d in django_day_map:
+            day_tickets = completed_tickets.filter(joined_at__week_day=d)
+            avg = day_tickets.aggregate(Avg('service_duration'))['service_duration__avg'] or 0
+            service_by_day.append(round(avg / 60, 1))
+
         stats = {
             'total_tickets': total,
             'completed_count': completed_tickets.count(),
@@ -635,7 +654,18 @@ class AnalyticsView(APIView):
             'average_service_time': round(avg_service, 2),
             'abandonment_rate': round((cancelled_tickets.count() / total * 100), 2) if total > 0 else 0,
         }
-        return Response({'stats': stats})
+
+        return Response({
+            'stats': stats,
+            'wait_time_chart': {
+                'labels': [f'{h}:00' for h in hours],
+                'data': wait_by_hour,
+            },
+            'service_time_chart': {
+                'labels': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                'data': service_by_day,
+            },
+        })
 
 
 class CheckStatusView(APIView):

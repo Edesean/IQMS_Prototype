@@ -37,6 +37,8 @@ export default function ManagerDashboard() {
     average_service_time: 0,
     abandonment_rate: 0,
   });
+  const [waitTimeChart, setWaitTimeChart] = useState({ labels: [], data: [] });
+  const [serviceTimeChart, setServiceTimeChart] = useState({ labels: [], data: [] });
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('today');
   const user = getCurrentUser();
@@ -55,6 +57,8 @@ export default function ManagerDashboard() {
     try {
       const data = await getAnalytics(dateRange);
       setStats(data.stats);
+      setWaitTimeChart(data.wait_time_chart || { labels: [], data: [] });
+      setServiceTimeChart(data.service_time_chart || { labels: [], data: [] });
     } catch (err) {
       toast.error('Failed to fetch analytics');
     } finally {
@@ -74,11 +78,11 @@ export default function ManagerDashboard() {
   };
 
   const barData = {
-    labels: ['9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM'],
+    labels: waitTimeChart.labels,
     datasets: [
       {
-        label: 'Wait Time (minutes)',
-        data: [8, 12, 15, 18, 14, 10, 7, 5],
+        label: 'Avg Wait Time (minutes)',
+        data: waitTimeChart.data,
         backgroundColor: 'rgba(59, 130, 246, 0.6)',
         borderColor: 'rgba(59, 130, 246, 1)',
         borderWidth: 1,
@@ -87,11 +91,11 @@ export default function ManagerDashboard() {
   };
 
   const lineData = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    labels: serviceTimeChart.labels,
     datasets: [
       {
         label: 'Avg Service Time (minutes)',
-        data: [4.2, 3.8, 4.5, 3.2, 4.0, 3.5],
+        data: serviceTimeChart.data,
         borderColor: 'rgba(34, 197, 94, 1)',
         backgroundColor: 'rgba(34, 197, 94, 0.2)',
         tension: 0.4,
