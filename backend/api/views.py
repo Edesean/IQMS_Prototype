@@ -603,6 +603,8 @@ class QueueStatusView(APIView):
 
 
 
+
+
 class AnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -680,7 +682,6 @@ class AnalyticsView(APIView):
                 'data': service_by_day,
             },
         })
-
 class CheckStatusView(APIView):
     permission_classes = [AllowAny]
 
