@@ -50,16 +50,13 @@ export async function subscribeUser(phoneNumber) {
     });
 
     const subJson = subscription.toJSON();
-
-    await fetch('http://localhost:8000/api/subscribe-push/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        phone_number: phoneNumber,
-        endpoint: subJson.endpoint,
-        p256dh: subJson.keys.p256dh,
-        auth: subJson.keys.auth,
-      }),
+    // Use the shared axios instance so it respects VITE_API_BASE_URL
+    const { default: api } = await import('./api');
+    await api.post('/subscribe-push/', {
+      phone_number: phoneNumber,
+      endpoint: subJson.endpoint,
+      p256dh: subJson.keys.p256dh,
+      auth: subJson.keys.auth,
     });
 
     console.log('[PUSH] Subscribed successfully');
