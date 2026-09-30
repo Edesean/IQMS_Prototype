@@ -1,23 +1,31 @@
 // frontend/public/sw.js
 
 self.addEventListener('push', function (event) {
+  console.log('[SW] Push event received');
+
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
+    console.log('[SW] Parsed JSON payload:', data);
   } catch (e) {
-    data = { title: 'IQMS', body: event.data ? event.data.text() : '' };
+    console.error('[SW] Failed to parse JSON, using text:', e);
+    data = { title: 'IQMS', body: event.data ? event.data.text() : 'New notification' };
   }
 
   const title = data.title || 'IQMS Notification';
   const options = {
-    body: data.body || '',
+    body: data.body || 'You have a new update.',
     icon: '/vite.svg',
     badge: '/vite.svg',
     tag: data.ticket_number || 'iqms',
     requireInteraction: true,
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+      .then(() => console.log('[SW] Notification shown successfully'))
+      .catch(err => console.error('[SW] showNotification error:', err))
+  );
 });
 
 self.addEventListener('notificationclick', function (event) {
